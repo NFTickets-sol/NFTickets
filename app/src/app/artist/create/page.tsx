@@ -3,6 +3,8 @@ import React, { useState, FormEvent, useEffect } from "react";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { WalletModalButton } from "@solana/wallet-adapter-react-ui"; // For wallet connect modal
 import { useSession } from "next-auth/react";
+import { FaInstagram, FaSpotify, FaYoutube } from "react-icons/fa"; // Icons from react-icons
+import { FaXTwitter } from "react-icons/fa6";
 
 type FormData = {
   artistName: string;
@@ -22,6 +24,41 @@ const ArtistProfileForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  //social verify
+  const [isModalOpen, setIsModalOpen] = useState({
+    instagram: false,
+    spotify: false,
+    youtube: false,
+    twitter: false,
+  });
+
+  const handleOpenModal = (platform: any) => {
+    setIsModalOpen({ ...isModalOpen, [platform]: true });
+  };
+
+  const handleCloseModal = (platform: any) => {
+    setIsModalOpen({ ...isModalOpen, [platform]: false });
+  };
+
+  const Modal = ({ platform, handleClose }: any) => (
+    <div
+      className={`fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center ${isModalOpen[platform] ? "block" : "hidden"
+        }`}
+    >
+      <div className="bg-white p-6 rounded-lg">
+        <h2 className="text-lg font-semibold">
+          Verify your {platform} account
+        </h2>
+        <p>Follow the steps to verify your {platform} account.</p>
+        <button
+          className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
+          onClick={() => handleClose(platform)}
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
   // Wallet connection hooks
   const wallet = useWallet();
   const connection = useConnection();
@@ -169,6 +206,64 @@ const ArtistProfileForm = () => {
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                 placeholder="Tell us about yourself"
               ></textarea>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-4">
+                Link Your Social Accounts: Only artists with sufficient social
+                media reputation can create events.
+              </label>
+
+              <div className="flex flex-col gap-4">
+                {/* Instagram */}
+                <div className="flex items-center">
+                  <FaInstagram className="text-2xl text-pink-500" />
+                  <button
+                    className="ml-2 bg-blue-500 text-white px-4 py-2 rounded"
+                    onClick={() => handleOpenModal("instagram")}
+                  >
+                    Verify
+                  </button>
+                </div>
+
+                {/* Spotify */}
+                <div className="flex items-center">
+                  <FaSpotify className="text-2xl text-green-500" />
+                  <button
+                    className="ml-2 bg-blue-500 text-white px-4 py-2 rounded"
+                    onClick={() => handleOpenModal("spotify")}
+                  >
+                    Verify
+                  </button>
+                </div>
+
+                {/* YouTube */}
+                <div className="flex items-center">
+                  <FaYoutube className="text-2xl text-red-500" />
+                  <button
+                    className="ml-2 bg-blue-500 text-white px-4 py-2 rounded"
+                    onClick={() => handleOpenModal("youtube")}
+                  >
+                    Verify
+                  </button>
+                </div>
+
+                {/* X (Twitter) */}
+                <div className="flex items-center">
+                  <FaXTwitter className="text-2xl text-black-500" />
+                  <button
+                    className="ml-2 bg-blue-500 text-white px-4 py-2 rounded"
+                    onClick={() => handleOpenModal("twitter")}
+                  >
+                    Verify
+                  </button>
+                </div>
+              </div>
+              {/* Modals */}
+              <Modal platform="instagram" handleClose={handleCloseModal} />
+              <Modal platform="spotify" handleClose={handleCloseModal} />
+              <Modal platform="youtube" handleClose={handleCloseModal} />
+              <Modal platform="twitter" handleClose={handleCloseModal} />
             </div>
 
             <div>
