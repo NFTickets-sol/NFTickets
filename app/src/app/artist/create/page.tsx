@@ -6,6 +6,10 @@ import { useSession } from "next-auth/react";
 import { FaInstagram, FaSpotify, FaYoutube } from "react-icons/fa"; // Icons from react-icons
 import { FaXTwitter } from "react-icons/fa6";
 
+//Reclaim
+import { ReclaimProofRequest } from "@reclaimprotocol/js-sdk";
+import ReclaimDemo from "./ReclaimDemo";
+
 type FormData = {
   artistName: string;
   bio: string;
@@ -29,7 +33,7 @@ const ArtistProfileForm = () => {
     instagram: false,
     spotify: false,
     youtube: false,
-    twitter: false,
+    x: false,
   });
 
   const handleOpenModal = (platform: any) => {
@@ -50,6 +54,7 @@ const ArtistProfileForm = () => {
           Verify your {platform} account
         </h2>
         <p>Follow the steps to verify your {platform} account.</p>
+        <ReclaimDemo social={platform} />
         <button
           className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
           onClick={() => handleClose(platform)}
@@ -59,6 +64,7 @@ const ArtistProfileForm = () => {
       </div>
     </div>
   );
+
   // Wallet connection hooks
   const wallet = useWallet();
   const connection = useConnection();
@@ -253,7 +259,7 @@ const ArtistProfileForm = () => {
                   <FaXTwitter className="text-2xl text-black-500" />
                   <button
                     className="ml-2 bg-blue-500 text-white px-4 py-2 rounded"
-                    onClick={() => handleOpenModal("twitter")}
+                    onClick={() => handleOpenModal("x")}
                   >
                     Verify
                   </button>
@@ -263,7 +269,7 @@ const ArtistProfileForm = () => {
               <Modal platform="instagram" handleClose={handleCloseModal} />
               <Modal platform="spotify" handleClose={handleCloseModal} />
               <Modal platform="youtube" handleClose={handleCloseModal} />
-              <Modal platform="twitter" handleClose={handleCloseModal} />
+              <Modal platform="x" handleClose={handleCloseModal} />
             </div>
 
             <div>
