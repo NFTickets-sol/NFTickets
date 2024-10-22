@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { ReclaimProofRequest } from "@reclaimprotocol/js-sdk";
 import QRCode from "react-qr-code";
 
@@ -10,8 +10,6 @@ const APP_ID = process.env.NEXT_PUBLIC_RECLAIM_APP_ID;
 const APP_SECRET = process.env.NEXT_PUBLIC_RECLAIM_APP_SECRET;
 
 async function initializeReclaim(PROVIDER_ID: string) {
-  console.log("APP_ID, APP_SECRET", APP_SECRET, APP_ID);
-
   const reclaimProofRequest = await ReclaimProofRequest.init(
     APP_ID,
     APP_SECRET,
@@ -53,63 +51,84 @@ const getAPPID = (social: string) => {
 };
 
 function ReclaimDemo({ social }: SocialMedia) {
-  const [requestUrl, setRequestUrl] = useState("");
+  const [requestUrl, setRequestUrl] = useState<string | null>(null);
   const [proofs, setProofs] = useState(null);
   const [status, setStatus] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    async function setup() {
-      try {
-        const PROVIDER_ID = getAPPID(social);
-        console.log("PROVIDER_ID", PROVIDER_ID, social);
+  const setup = async () => {
+    try {
+      setIsLoading(true);
+      const PROVIDER_ID = getAPPID(social);
 
-        if (!PROVIDER_ID) {
-          setStatus("Invalid social media platform.");
-          return;
-        }
-
-        const reclaimProofRequest = await initializeReclaim(PROVIDER_ID);
-        const url = await generateRequestUrl(reclaimProofRequest);
-        setRequestUrl(url);
-        setStatus("Ready to start verification");
-
-        await startVerificationSession(
-          reclaimProofRequest,
-          (proofs: any) => {
-            console.log("Verification success", proofs);
-            setProofs(proofs);
-            setStatus("Proof received!");
-          },
-          (error: any) => {
-            console.error("Verification failed", error);
-            setStatus(`Error: ${error.message}`);
-          }
-        );
-      } catch (error: any) {
-        console.error("Setup failed", error);
-        setStatus(`Setup failed: ${error.message}`);
+      if (!PROVIDER_ID) {
+        setStatus("Invalid social media platform.");
+        setIsLoading(false);
+        return;
       }
-    }
 
-    setup();
-  }, []); // Only re-run the effect when 'social' changes
+      setStatus("Initializing Reclaim...");
+      const reclaimProofRequest = await initializeReclaim(PROVIDER_ID);
+      const url = await generateRequestUrl(reclaimProofRequest);
+      setRequestUrl(url);
+      setStatus("Ready to start verification");
+
+      await startVerificationSession(
+        reclaimProofRequest,
+        (proofs: any) => {
+          console.log("Verification success", proofs);
+          setProofs(proofs);
+          setStatus("Proof received!");
+        },
+        (error: any) => {
+          console.error("Verification failed", error);
+          setStatus(`Error: ${error.message}`);
+        }
+      );
+    } catch (error: any) {
+      console.error("Setup failed", error);
+      setStatus(`Setup failed: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <div>
-      <h1>Reclaim Protocol Demo</h1>
-      <p>Status: {status}</p>
-      {requestUrl && (
-        <div>
-          <p>Request URL: {requestUrl}</p>
-          <p>Scan this QR Code:</p>
-          <QRCode size={256} value={requestUrl} viewBox={`0 0 256 256`} />
+    <div className="p-4 max-w-2xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Reclaim Protocol Demo</h1>
+
+      <p className="mt-4 text-gray-700">Status: {status}</p>
+
+      {requestUrl ? (
+        <div className="mt-6 p-4 border rounded-lg bg-white shadow-sm">
+          <p className="mb-2 text-sm text-gray-600">Scan this QR Code:</p>
+          <div className="flex justify-center p-4 bg-white">
+            <QRCode
+              value={requestUrl}
+              size={256}
+              style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+              viewBox="0 0 256 256"
+            />
+          </div>
         </div>
+      ) : (
+        <button
+          className={`mt-4 px-4 py-2 rounded ${isLoading
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-blue-500 hover:bg-blue-600"
+            } text-white transition-colors`}
+          onClick={setup}
+          disabled={isLoading}
+        >
+          {isLoading ? "Generating..." : "Create QR Code!"}
+        </button>
       )}
+
       {proofs && (
-        <div>
-          <h2>Verification Successful!</h2>
-          {/* You can uncomment this to show proofs */}
-          {/* <pre>{JSON.stringify(proofs, null, 2)}</pre> */}
+        <div className="mt-6 p-4 border rounded-lg bg-green-50">
+          <h2 className="text-xl font-semibold text-green-700">
+            Verification Successful!
+          </h2>
         </div>
       )}
     </div>
